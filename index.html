@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documentação Técnica - Roteamento e Switching Multi-VLAN</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+      /* Estilos específicos para garantir a responsividade e rolagem horizontal da imagem da topologia */
+      .image-scroll-container {
+        width: 100%;
+        overflow-x: auto !important;
+        border: 1px solid var(--border-color, #cbd5e0) !important;
+        border-radius: 6px !important;
+        background-color: #ffffff;
+        padding: 10px;
+        margin-bottom: 25px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .image-scroll-container img {
+        display: block;
+        max-width: none; /* Impede que a imagem encolha no mobile, mantendo a resolução */
+        height: auto;
+      }
+      .scroll-hint {
+        display: none;
+        color: var(--primary, #2b6cb0);
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      @media (max-width: 768px) {
+        .scroll-hint {
+          display: block; /* Só exibe o aviso de arrastar em telas pequenas */
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top-bar">
+      <div class="badge-lab"><i class="fas fa-network-wired"></i> Infraestrutura Multi-VLAN Homologada</div>
+      <a href="#download" class="btn-outline"> <i class="fas fa-file-download"></i> Baixar Arquivo .PKA </a>
+    </header>
+
+    <section class="hero">
+      <div class="container">
+        <h1>Documentação de Engenharia de Rede</h1>
+        <p>Infraestrutura Corporativa Multi-VLAN com Restrição Numérica de Portas Primas e Escopo DHCP Dinâmico</p>
+      </div>
+    </section>
+
+    <main class="container">
+      <table class="table-custom" style="margin-bottom: 25px">
+        <tbody>
+          <tr>
+            <td><strong>Projeto:</strong> Arquitetura de Rede Corporativa Vertical (Andares 1 a 4)</td>
+            <td><strong>Status:</strong> Homologado / Em Execução</td>
+          </tr>
+          <tr>
+            <td><strong>Autor:</strong> Engenharia de Redes</td>
+            <td><strong>Data de Refotografia:</strong> Junho de 2026</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <section class="section">
+        <h2 class="section-title"><i class="fas fa-layer-group"></i> 1. Visão Geral e Escopo de Distribuição de IPs</h2>
+        <p>
+          Este documento consolida a arquitetura física e lógica desenvolvida para o edifício corporativo, segmentando os departamentos por
+          andares através do uso de Redes Locais Virtuais (VLANs). O roteamento entre as sub-redes é centralizado no roteador principal
+          <strong>R1</strong> operando em modo <em>Router-on-a-Stick</em>, responsible também pela atribuição dinâmica de endereçamento via
+          DHCP.
+        </p>
+        <p>
+          A tabela de distribuição abaixo demonstra o planejamento linear adotado para as sub-redes, seguindo sequencialmente os blocos base
+          conforme estipulado pelo projeto normativo:
+        </p>
+
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>VLAN</th>
+              <th>Departamento</th>
+              <th>Sub-rede IP</th>
+              <th>Máscara de Rede</th>
+              <th>Gateway Padrão</th>
+              <th>Métricas / Limite da Faixa</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>40</strong></td>
+              <td>Marketing / Comunicação</td>
+              <td>172.16.0.0/24</td>
+              <td>255.255.255.0</td>
+              <td>172.16.0.1</td>
+              <td>172.16.0.2 a 172.16.0.254</td>
+            </tr>
+            <tr>
+              <td><strong>50</strong></td>
+              <td>Vendas / Operações</td>
+              <td>172.16.1.0/24</td>
+              <td>255.255.255.0</td>
+              <td>172.16.1.1</td>
+              <td>172.16.1.2 a 172.16.1.254</td>
+            </tr>
+            <tr>
+              <td><strong>60</strong></td>
+              <td>TI / Desenvolvimento</td>
+              <td>172.16.2.0/24</td>
+              <td>255.255.255.0</td>
+              <td>172.16.2.1</td>
+              <td>172.16.2.2 a 172.16.2.254</td>
+            </tr>
+            <tr>
+              <td><strong>70</strong></td>
+              <td>Finanças / Contabilidade</td>
+              <td>172.16.3.0/24</td>
+              <td>255.255.255.0</td>
+              <td>172.16.3.1</td>
+              <td>172.16.3.2 a 172.16.3.254</td>
+            </tr>
+            <tr>
+              <td><strong>80</strong></td>
+              <td>Diretoria / Executivo</td>
+              <td>172.16.4.0/24</td>
+              <td>255.255.255.0</td>
+              <td>172.16.4.1</td>
+              <td>172.16.4.2 a 172.16.4.254</td>
+            </tr>
+            <tr>
+              <td><strong>90</strong></td>
+              <td>Visitantes / Guest</td>
+              <td>172.16.5.0/24</td>
+              <td>255.255.255.0</td>
+              <td>172.16.5.1</td>
+              <td>172.16.5.2 a 172.16.5.254</td>
+            </tr>
+            <tr>
+              <td><strong>875</strong></td>
+              <td>VLAN Nativa (Controle)</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>Tráfego não etiquetado (Untagged)</td>
+            </tr>
+            <tr>
+              <td><strong>999</strong></td>
+              <td>Segurança (Não Utilizadas)</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>Buraco Negro (Blackhole VLAN)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="alert alert-danger" style="margin-top: 20px">
+          <strong><i class="fas fa-exclamation-triangle"></i> Regra Crítica de Segurança Física:</strong> Conforme diretriz mandatória do
+          enunciado, a conexão física de qualquer terminal aos switches de acesso deve ocorrer
+          <strong>exclusivamente nas interfaces cujos índices numéricos correspondam a números primos</strong>. Toda e qualquer porta
+          remanescente não-prima deve permanecer administrativamente desativada (shutdown) e associada à VLAN de isolamento 999.
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title"><i class="fas fa-project-diagram"></i> Imagem Oficial da Topologia do Laboratório</h2>
+
+        <div class="scroll-hint">
+          <i class="fas fa-arrows-alt-h"></i> Arraste para o lado para visualizar a topologia completa sem perder resolução
+        </div>
+
+        <div class="image-scroll-container">
+          <img src="./image.png" alt="Topologia Ampla de Rede Multi-VLAN Cisco Packet Tracer" width="1200" height="600" />
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title"><i class="fas fa-shield-alt"></i> 2. Diretrizes de Segurança e Hardening de Ativos</h2>
+        <p>
+          Como requisito mandatório de proteção lógica da infraestrutura corporativa, foi estabelecido o controle de barreiras de acesso em
+          duas camadas operacionais nos dispositivos. Todas as senhas de texto plano sofrem ofuscação automática no arquivo de configuração
+          do sistema operacional Cisco IOS.
+        </p>
+        <div class="card">
+          <h3>Mapeamento de Credenciais Administrativas</h3>
+          <ul>
+            <li>
+              <strong>Acesso 1 (Nível de Usuário - Console/VTY):</strong> Protege a entrada inicial de terminais de gerenciamento locais ou
+              remotos. A credencial definida é <code>ciscoAdmin</code>.
+            </li>
+            <li>
+              <strong>Acesso 2 (Nível Privilegiado - Modo Enable):</strong> Desbloqueia privilégios de configuração de hardware. Empregando
+              algoritmos hash robustos nativos do parâmetro <code>secret</code>, a chave definida é <code>cisco</code>.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title"><i class="fas fa-terminal"></i> 3. Configuração Centralizada do Roteador (R1)</h2>
+        <p>
+          O roteador atua como o núcleo lógico da topologia. As configurações abaixo ativam o encapsulamento 802.1Q e segregam os escopos do
+          servidor DHCP por sub-rede, excluindo os gateways para mitigar riscos de colisão IP.
+        </p>
+        <div class="terminal">
+          <pre>
+! CONFIGURAÇÃO DAS SUB-INTERFACES LOGICAS (ROUTER-ON-A-STICK)
+interface GigabitEthernet0/0
+ no shutdown
+ description Conexao_Tronco_Principal_Switch_1_Andar
+exit
+
+interface GigabitEthernet0/0.40
+ encapsulation dot1Q 40
+ ip address 172.16.0.1 255.255.255.0
+exit
+
+interface GigabitEthernet0/0.50
+ encapsulation dot1Q 50
+ ip address 172.16.1.1 255.255.255.0
+exit
+
+interface GigabitEthernet0/0.60
+ encapsulation dot1Q 60
+ ip address 172.16.2.1 255.255.255.0
+exit
+
+interface GigabitEthernet0/0.70
+ encapsulation dot1Q 70
+ ip address 172.16.3.1 255.255.255.0
+exit
+
+interface GigabitEthernet0/0.80
+ encapsulation dot1Q 80
+ ip address 172.16.4.1 255.255.255.0
+exit
+
+interface GigabitEthernet0/0.90
+ encapsulation dot1Q 90
+ ip address 172.16.5.1 255.255.255.0
+exit
+
+interface GigabitEthernet0/0.875
+ encapsulation dot1Q 875 native
+ description Alinhamento_Vlan_Nativa_Trunk
+exit
+
+! EXCLUSÃO DE IP DO POOL DHCP PARA EVITAR CONFLITOS DE ENDEREÇO
+ip dhcp excluded-address 172.16.0.1
+ip dhcp excluded-address 172.16.1.1
+ip dhcp excluded-address 172.16.2.1
+ip dhcp excluded-address 172.16.3.1
+ip dhcp excluded-address 172.16.4.1
+ip dhcp excluded-address 172.16.5.1
+
+! CONFIGURAÇÃO DOS POOLS INDIVIDUAIS DE CADA DEPARTAMENTO
+ip dhcp pool POOL_VLAN40
+ network 172.16.0.0 255.255.255.0
+ default-router 172.16.0.1
+ dns-server 8.8.8.8
+
+ip dhcp pool POOL_VLAN50
+ network 172.16.1.0 255.255.255.0
+ default-router 172.16.1.1
+ dns-server 8.8.8.8
+
+ip dhcp pool POOL_VLAN60
+ network 172.16.2.0 255.255.255.0
+ default-router 172.16.2.1
+ dns-server 8.8.8.8
+
+ip dhcp pool POOL_VLAN70
+ network 172.16.3.0 255.255.255.0
+ default-router 172.16.3.1
+ dns-server 8.8.8.8
+
+ip dhcp pool POOL_VLAN80
+ network 172.16.4.0 255.255.255.0
+ default-router 172.16.4.1
+ dns-server 8.8.8.8
+
+ip dhcp pool POOL_VLAN90
+ network 172.16.5.0 255.255.255.0
+ default-router 172.16.5.1
+ dns-server 8.8.8.8</pre
+          >
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title"><i class="fas fa-toggle-on"></i> 4. Configuração dos Switches de Acesso (Andares 1 ao 4)</h2>
+        <p>
+          Em cada switch, as portas de uplink (G0/1 e G0/2) foram configuradas em modo Trunk com transporte explícito da VLAN Nativa 875. As
+          portas de acesso ativas utilizam estritamente o conjunto numérico primo P = {2, 3, 5, 7}.
+        </p>
+
+        <div class="card">
+          <h3>4.1. Switch 1º Andar</h3>
+          <div class="terminal">
+            <pre>
+hostname 1_Andar
+! POLITICA DE SEGURANÇA E CRIPTOGRAFIA
+service password-encryption
+enable secret cisco
+line console 0
+ password ciscoAdmin
+ login
+exit
+line vty 0 4
+ password ciscoAdmin
+ login
+exit
+!
+vlan 50,60,70,875,999
+exit
+interface range g0/1 - 2
+ switchport mode trunk
+ switchport trunk native vlan 875
+exit
+interface f0/2
+ switchport mode access
+ switchport access vlan 70
+ description Host_Vlan70_Superior
+interface f0/3
+ switchport mode access
+ switchport access vlan 50
+ description Host_Vlan50_Meio
+interface f0/5
+ switchport mode access
+ switchport access vlan 60
+ description Host_Vlan60_Inferior
+exit
+interface range f0/1, f0/4, f0/6, f0/7, f0/8, f0/9, f0/10, f0/11, f0/12, f0/13, f0/14, f0/15, f0/16, f0/17, f0/18, f0/19, f0/20, f0/21, f0/22, f0/23, f0/24
+ switchport mode access
+ switchport access vlan 999
+ shutdown
+ description Porta_Desativada_Nao_Prima</pre
+            >
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>4.2. Switch 2º Andar</h3>
+          <div class="terminal">
+            <pre>
+hostname 2_Andar
+! POLITICA DE SEGURANÇA E CRIPTOGRAFIA
+service password-encryption
+enable secret cisco
+line console 0
+ password ciscoAdmin
+ login
+exit
+line vty 0 4
+ password ciscoAdmin
+ login
+exit
+!
+vlan 40,60,70,80,875,999
+exit
+interface range g0/1 - 2
+ switchport mode trunk
+ switchport trunk native vlan 875
+exit
+interface f0/2
+ switchport mode access
+ switchport access vlan 40
+ description Host_Mkt_V40
+interface f0/3
+ switchport mode access
+ switchport access vlan 70
+ description Host_Fin_V70
+interface f0/5
+ switchport mode access
+ switchport access vlan 60
+ description Host_TI_V60
+interface f0/7
+ switchport mode access
+ switchport access vlan 80
+ description Host_Dir_V80
+exit
+interface range f0/1, f0/4, f0/6, f0/8, f0/9, f0/10, f0/11, f0/12, f0/13, f0/14, f0/15, f0/16, f0/17, f0/18, f0/19, f0/20, f0/21, f0/22, f0/23, f0/24
+ switchport mode access
+ switchport access vlan 999
+ shutdown</pre
+            >
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>4.3. Switch 3º Andar (Bloco Verde Corrigido)</h3>
+          <div class="terminal">
+            <pre>
+hostname 3_Andar
+! POLITICA DE SEGURANÇA E CRIPTOGRAFIA
+service password-encryption
+enable secret cisco
+line console 0
+ password ciscoAdmin
+ login
+exit
+line vty 0 4
+ password ciscoAdmin
+ login
+exit
+!
+vlan 50,60,80,90,875,999
+exit
+interface range g0/1 - 2
+ switchport mode trunk
+ switchport trunk native vlan 875
+exit
+interface f0/2
+ switchport mode access
+ switchport access vlan 50
+ description Host_Vendas_V50
+interface f0/3
+ switchport mode access
+ switchport access vlan 90
+ description Host_Visitantes_V90
+interface f0/5
+ switchport mode access
+ switchport access vlan 60
+ description Host_TI_V60
+interface f0/7
+ switchport mode access
+ switchport access vlan 80
+ description Host_Dir_V80
+exit
+interface range f0/1, f0/4, f0/6, f0/8, f0/9, f0/10, f0/11, f0/12, f0/13, f0/14, f0/15, f0/16, f0/17, f0/18, f0/19, f0/20, f0/21, f0/22, f0/23, f0/24
+ switchport mode access
+ switchport access vlan 999
+ shutdown</pre
+            >
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>4.4. Switch 4º Andar</h3>
+          <div class="terminal">
+            <pre>
+hostname 4_Andar
+! POLITICA DE SEGURANÇA E CRIPTOGRAFIA
+service password-encryption
+enable secret cisco
+line console 0
+ password ciscoAdmin
+ login
+exit
+line vty 0 4
+ password ciscoAdmin
+ login
+exit
+!
+vlan 40,80,90,875,999
+exit
+interface g0/1
+ switchport mode trunk
+ switchport trunk native vlan 875
+exit
+interface f0/2
+ switchport mode access
+ switchport access vlan 90
+ description Host_Visitantes_V90
+interface f0/3
+ switchport mode access
+ switchport access vlan 80
+ description Host_Dir_V80
+interface f0/5
+ switchport mode access
+ switchport access vlan 40
+ description Host_Mkt_V40
+exit
+interface range f0/1, f0/4, f0/6, f0/7, f0/8, f0/9, f0/10, f0/11, f0/12, f0/13, f0/14, f0/15, f0/16, f0/17, f0/18, f0/19, f0/20, f0/21, f0/22, f0/23, f0/24
+ switchport mode access
+ switchport access vlan 999
+ shutdown</pre
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title"><i class="fas fa-lightbulb"></i> 5. Exemplos Práticos de Caso de Uso</h2>
+
+        <div class="card">
+          <h3>
+            <span style="color: var(--primary)"><i class="fas fa-user-plus"></i> Caso de Uso 1:</span> Admissão de Novo Colaborador no Setor
+            de Vendas (3º Andar)
+          </h3>
+          <p>
+            <strong>Cenário:</strong> Um novo colaborador inicia no departamento de Vendas localizado no bloco verde. Ele conecta seu
+            computador à porta número 2 do switch.
+          </p>
+          <p>
+            <strong>Mecanismo Interno:</strong> O switch reconhece que a interface FastEthernet 0/2 está configurada com
+            <code>switchport access vlan 50</code>. O terminal emite um pacote em broadcast <em>DHCP Discover</em> dentro do domínio de
+            broadcast da VLAN 50. O pacote transita pelo Trunk (tag 50) e atinge a sub-interface <code>g0/0.50</code> no roteador
+            <strong>R1</strong>. O roteador correlaciona a requisição com o pool <code>POOL_VLAN50</code> e fornece uma concessão válida
+            dentro da rede <code>172.16.1.0/24</code>.
+          </p>
+        </div>
+
+        <div class="card" style="margin-top: 15px">
+          <h3>
+            <span style="color: var(--danger)"><i class="fas fa-shield-alt"></i> Caso de Uso 2:</span> Tentativa de Intrusão Física via
+            Porta Não Utilizada
+          </h3>
+          <p>
+            <strong>Cenário:</strong> Um usuário mal-intencionado conecta um terminal pessoal à porta FastEthernet 0/4 do switch do 2º Andar
+            (bloco amarelo).
+          </p>
+          <p>
+            <strong>Mecanismo Interno:</strong> Por estar sob a diretriz de mitigação de riscos de portas não-primas, a interface está
+            configurada em estado <code>shutdown</code> e mapeada para a VLAN 999. O link físico não se estabelece (o LED permanece
+            completamente apagado no rack). O terminal não recebe tráfego de controle e é incapaz de interceptar ou injectar pacotes em
+            qualquer outro departamento da empresa, garantindo o isolamento absoluto da infraestrutura física corporativa.
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title"><i class="fas fa-book"></i> 6. Glossário Técnico Operacional</h2>
+        <div class="card">
+          <ul>
+            <li>
+              <strong>VLAN (Virtual Local Area Network):</strong> Tecnologia que permite a segmentação lógica de uma única infraestrutura de
+              switch físico em múltiplos domínios de broadcast independentes e isolados.
+            </li>
+            <li>
+              <strong>Router-on-a-Stick:</strong> Arquitetura de rede onde um único roteador físico realiza o encaminhamento de pacotes
+              entre diferentes VLANs através de uma única interface física dividida em sub-interfaces lógicas carimbadas com o protocolo
+              802.1Q.
+            </li>
+            <li>
+              <strong>Trunking (802.1Q):</strong> Protocolo de padronização da IEEE que insere uma etiqueta (tag) de identificação de 12
+              bits nos quadros Ethernet para permitir que múltiplas VLANs trafeguem simultaneamente pelo mesmo enlace físico de uplink.
+            </li>
+            <li>
+              <strong>VLAN Nativa:</strong> VLAN específica designada em links tronco que transporta todo o tráfego administrativo e de
+              controle que viaja sem etiquetas de identificação (untagged frames), como protocolos STP, DTP e CDP.
+            </li>
+            <li>
+              <strong>Pool DHCP:</strong> Intervalo consecutivo e pré-configurado de endereços IP lógicos gerenciados por um servidor,
+              disponibilizados para alocação automática a clientes da rede por tempo determinado.
+            </li>
+            <li>
+              <strong>Blackhole VLAN:</strong> Prática recomendada de segurança que consiste em mover todas as interfaces físicas não
+              utilizadas para uma ID de VLAN isolada, nula e totalmente sem roteamento, neutralizando acessos mal-intencionados.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="download" class="download-zone">
+        <h2>Pronto para analisar a topologia vertical?</h2>
+        <p style="color: var(--text-dim); margin-bottom: 1.5rem">
+          Faça o download do arquivo de simulação completo do Packet Tracer com todas as subinterfaces, pools de DHCP e regras de portas
+          primas ativos.
+        </p>
+        <a href="./DesafioTrunkIntervlan e DHCP.pkt" class="btn-download" download>
+          <i class="fas fa-cloud-download-alt"></i> Baixar Arquivo do Laboratório (.PKA)
+        </a>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 - Central de Documentação Técnica e Arquitetura de Redes Corporativas.</p>
+    </footer>
+  </body>
+</html>
